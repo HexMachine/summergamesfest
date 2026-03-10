@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>We are flying through the inter net</title>
+  
+</head>
+<body>
+  <div class="site-bg"></div>
+  <title>Stellathon</title>
+  <style>
+    html,body{height:100%;margin:0;background:#fff}
+    body{font-family:system-ui,Arial,Helvetica,sans-serif}
+
+    /* please don't look at my gay little legs*/
+    #fallback{display:none;padding:1.5rem 1rem 0;text-align:center;max-width:900px;margin:0 auto;color:#000}
+    
+    #fallback p{margin:0;font-size:1.125rem;line-height:1.4}
+    #fallback a{color:#06c;text-decoration:underline}
+  </style>
+  <script>
+    (function(){
+      var target = 'https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:ujrl66zthk6ghceax4yw2fwl/bafkreif5h5zxyqn3wnymmzi2y3fqoywncg5azotegsheknfxjizq47lsai';
+      var maxRetries = 10;
+      var retryInterval = 1000;
+      var attempt = 0;
+      var retryTimer = null;
+
+      function tryRedirect(){
+        attempt++;
+        try{
+          window.location.replace(target);
+        }catch(e){
+          //try href i guess? really shouldn't be necessary but who fuckin knows
+          window.location.href = target;
+        }
+      }
+
+      // initial redirect attempt
+      tryRedirect();
+
+      // after 300ms, show em the text and start spinning the wheelz
+      var fallbackRevealTimer = setTimeout(function(){
+        var fallback = document.getElementById('fallback');
+        if(fallback){
+          fallback.style.display = 'block';
+        }
+
+        // retries
+        retryTimer = setInterval(function(){
+          if(attempt >= maxRetries){
+            clearInterval(retryTimer);
+            return;
+          }
+          tryRedirect();
+        }, retryInterval);
+
+        // stop retrying dumb ass
+        window.addEventListener('pagehide', function(){ if(retryTimer) clearInterval(retryTimer); });
+      }, 300);
+    })();
+  </script>
+    <div class="content">
+      <div id="fallback" style="padding:2rem;text-align:center;max-width:800px;margin:3rem auto;color:#fff;">
+        <p>
+          oh crap you probably shouldn't see this page. It might still redirect you, but idk man. Anyway,
+          <a id="redirectLink" href="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:ujrl66zthk6ghceax4yw2fwl/bafkreif5h5zxyqn3wnymmzi2y3fqoywncg5azotegsheknfxjizq47lsai">click here to get redirected</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
