@@ -17,50 +17,52 @@
     html,body{height:100%;margin:0;background:#fff}
     body{font-family:system-ui,Arial,Helvetica,sans-serif}
 
-    /* please don't look at my gay little legs*/
+    /* don't look at my gay little legs */
     #fallback{display:none;padding:1.5rem 1rem 0;text-align:center;max-width:900px;margin:0 auto;color:#000}
-    
     #fallback p{margin:0;font-size:1.125rem;line-height:1.4}
     #fallback a{color:#06c;text-decoration:underline}
   </style>
   <script>
+    // read target so caching doesn't completely kill me. i am dying inside
     (function(){
-      var target = 'https://bsky.app/profile/dylanroth.bsky.social/post/3mgpqbo53fc2h';
-      var maxRetries = 10;
-      var retryInterval = 1000;
-      var attempt = 0;
-      var retryTimer = null;
+      const targetPath = 'redirect_target.txt';
+      const maxRetries = 10;
+      const retryInterval = 1000; // ms
+      let attempt = 0;
+      let retryTimer = null;
+      let revealed = false;
 
-      function tryRedirect(){
+      function showFallback(){
+        if(revealed) return;
+        revealed = true;
+        const fb = document.getElementById('fallback');
+        if(fb) fb.style.display = 'block';
+      }
+
+      async function loadAndRedirect(){
         attempt++;
         try{
-          window.location.replace(target);
+          const res = await fetch(targetPath, { cache: 'no-store' });
+          if(!res.ok) throw new Error('fetch failed: ' + res.status);
+          const txt = (await res.text()).trim();
+          if(!txt) throw new Error('empty target');
+          if(retryTimer){ clearInterval(retryTimer); retryTimer = null; }
+          try{ window.location.replace(txt); }catch(e){ window.location.href = txt; }
         }catch(e){
-          //try href i guess? really shouldn't be necessary but who fuckin knows
-          window.location.href = target;
+          // skip, we'll try again in a bit
         }
       }
 
-      // initial redirect attempt
-      tryRedirect();
+      // initial attempt
+      loadAndRedirect();
 
-      // after 300ms, show em the text and start spinning the wheelz
-      var fallbackRevealTimer = setTimeout(function(){
-        var fallback = document.getElementById('fallback');
-        if(fallback){
-          fallback.style.display = 'block';
-        }
-
-        // retries
+      // if at first you don't succeed, oh shit oh fuck. retry or whatecer
+      setTimeout(function(){
+        showFallback();
         retryTimer = setInterval(function(){
-          if(attempt >= maxRetries){
-            clearInterval(retryTimer);
-            return;
-          }
-          tryRedirect();
+          if(attempt >= maxRetries){ clearInterval(retryTimer); retryTimer = null; return; }
+          loadAndRedirect();
         }, retryInterval);
-
-        // stop retrying dumb ass
         window.addEventListener('pagehide', function(){ if(retryTimer) clearInterval(retryTimer); });
       }, 300);
     })();
@@ -69,7 +71,7 @@
       <div id="fallback" style="padding:2rem;text-align:center;max-width:800px;margin:3rem auto;color:#fff;">
         <p>
           oh crap you probably shouldn't see this page. It might still redirect you, but idk man. Anyway,
-          <a id="redirectLink" href="https://bsky.app/profile/dylanroth.bsky.social/post/3mgpqbo53fc2h">click here to get redirected</a>.
+          <a id="redirectLink" href="redirect_target.txt">click here for the Stellathon</a>.
         </p>
       </div>
     </div>
