@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>We are flying through the inter net</title>
+  
+</head>
+<body>
+  <div class="site-bg"></div>
+  <title>Stellathon Tip Cup/Donations Page</title>
+  <style>
+    html,body{height:100%;margin:0;background:#fff}
+    body{font-family:system-ui,Arial,Helvetica,sans-serif}
+
+    /* don't look at my gay little legs */
+    #fallback{display:none;padding:1.5rem 1rem 0;text-align:center;max-width:900px;margin:0 auto;color:#000}
+    #fallback p{margin:0;font-size:1.125rem;line-height:1.4}
+    #fallback a{color:#06c;text-decoration:underline}
+  </style>
+  <script>
+    // read target so caching doesn't completely kill me. i am dying inside
+    (function(){
+      const targetPath = 'redirect_target.txt';
+      const maxRetries = 10;
+      const retryInterval = 1000; // ms
+      let attempt = 0;
+      let retryTimer = null;
+      let revealed = false;
+
+      function showFallback(){
+        if(revealed) return;
+        revealed = true;
+        const fb = document.getElementById('fallback');
+        if(fb) fb.style.display = 'block';
+      }
+
+      async function loadAndRedirect(){
+        attempt++;
+        try{
+          const res = await fetch(targetPath, { cache: 'no-store' });
+          if(!res.ok) throw new Error('fetch failed: ' + res.status);
+          const txt = (await res.text()).trim();
+          if(!txt) throw new Error('empty target');
+          if(retryTimer){ clearInterval(retryTimer); retryTimer = null; }
+          try{ window.location.replace(txt); }catch(e){ window.location.href = txt; }
+        }catch(e){
+          // skip, we'll try again in a bit
+        }
+      }
+
+      // initial attempt
+      loadAndRedirect();
+
+      // if at first you don't succeed, oh shit oh fuck. retry or whatecer
+      setTimeout(function(){
+        showFallback();
+        retryTimer = setInterval(function(){
+          if(attempt >= maxRetries){ clearInterval(retryTimer); retryTimer = null; return; }
+          loadAndRedirect();
+        }, retryInterval);
+        window.addEventListener('pagehide', function(){ if(retryTimer) clearInterval(retryTimer); });
+      }, 300);
+    })();
+  </script>
+    <div class="content">
+      <div id="fallback" style="padding:2rem;text-align:center;max-width:800px;margin:3rem auto;color:#fff;">
+        <p>
+          oh crap you probably shouldn't see this page. It might still redirect you, but idk man. Anyway,
+          <a id="redirectLink" href="redirect_target.txt">click here for the Stellathon</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
